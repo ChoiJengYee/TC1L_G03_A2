@@ -1,0 +1,25 @@
+>CREATE fileOutput2.txt;
+>DATABASES;
+C:\Windows\Programming_fundamental\fileInput2.mdb
+>CREATE TABLE customer(
+customer_customer_id INT,
+customer_customer_name INT,
+customer_customer_city INT,
+customer_customer_state INT,
+customer_customer_country INT,
+customer_customer_phone INT,
+customer_customer_email INT
+);
+>INSERT INTO
+customer(customer_id,customer_name,customer_city,customer_state,customer_country,customer_phone,customer_email) VALUES('1','Alice','New York','NY','USA','1234567890','alice@example.com');
+>INSERT INTO
+customer(customer_id,customer_name,customer_city,customer_state,customer_country,customer_phone,customer_email) VALUES('2','Bob','Los Angeles','CA','USA','0987654321','bob@example.com');
+>INSERT INTO
+customer(customer_id,customer_name,customer_city,customer_state,customer_country,customer_phone,customer_email) VALUES('3','Charlie','Chicago','IL','USA','1122334455','updatedemail@example.com');
+>SELECT * FROM customer;
+customer_id,customer_name,customer_city,customer_state,customer_country,customer_phone,customer_email
+1,Alice,New York,NY,USA,1234567890,alice@example.com
+2,Bob,Los Angeles,CA,USA,0987654321,bob@example.com
+3,Charlie,Chicago,IL,USA,1122334455,updatedemail@example.com
+>SELECT COUNT(*) FROM customer;
+Count: 3
