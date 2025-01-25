@@ -18,8 +18,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <string>
+#include <vector>
 using namespace std;
 
 
@@ -44,9 +44,9 @@ void read_to_file(const string &inputFile, const string &outputFile); // Functio
 void create_table(Table &table, const string &firstLine, ifstream &file); // Function to create a table
 void insert_row(Table &table, const string &line); // Function to insert a new row into a table
 void select_all(const Table &table); // Function to display all rows in a table
-void select_count(const Table &table); // Function to count the number of rows in a table
 void update_row(Table &table, const string &line); // Function to update a row based on a condition
 void delete_row(Table &table, const string &line); // Function to delete a row based on a condition
+void select_count(const Table &table); // Function to count the number of rows in a table
 void output_to_file(const Table &table, const string &filename); // Function to write table data to a file
 
 
@@ -76,12 +76,13 @@ void read_to_file(const string &inputFile, const string &outputFile)
                 insert_row(table, line); // Call function to insert a row into the table
             } else if (line.find("SELECT * FROM") == 0) {
                 select_all(table); // Call function to select and display all rows from the table
-            } else if (line.find("SELECT COUNT(*) FROM") == 0) {
-                select_count(table); // Call function to count the number of rows in the table
-            } else if (line.find("DELETE FROM") == 0) {
-                delete_row(table, line); // Call function to delete a row based on the condition
             } else if (line.find("UPDATE") == 0) {
                 update_row(table, line); // Call function to update a row based on the condition
+            } else if (line.find("DELETE FROM") == 0) {
+                delete_row(table, line); // Call function to delete a row based on the condition
+            } else if (line.find("SELECT COUNT(*) FROM") == 0) {
+                select_count(table); // Call function to count the number of rows in the table
+
             }
         }
         file.close(); // Close the file after processing all lines
@@ -209,13 +210,6 @@ void select_all(const Table &table)
     }
 }
 
-// Function to count and display the number of rows in the table
-void select_count(const Table &table)
-{
-    cout << "> SELECT COUNT(*) FROM " << table.name << ";" << endl; // Display the COUNT statement
-    cout << "Count: " << table.rows.size() << endl; // Display the count of rows
-}
-
 // Function to update a row based on the "UPDATE" SQL command
 void update_row(Table &table, const string &line)
 {
@@ -321,6 +315,13 @@ void delete_row(Table &table, const string &line)
     }
 
     cout << "> Error: Row not found." << endl; // Display error if no matching row is found
+}
+
+// Function to count and display the number of rows in the table
+void select_count(const Table &table)
+{
+    cout << "> SELECT COUNT(*) FROM " << table.name << ";" << endl; // Display the COUNT statement
+    cout << "Count: " << table.rows.size() << endl; // Display the count of rows
 }
 
 // Function to output the table data to the file
