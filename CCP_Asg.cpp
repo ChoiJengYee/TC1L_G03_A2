@@ -10,9 +10,9 @@
 // Member_4: 242UC244PB | LEM JOE ERN | LEM.JOE.ERN@student.mmu.edu.my | 016-2237965
 // *********************************************************
 // Task Distribution
-// Member_1: Function: createTable, insertRow, selectAll, splitString
-// Member_2: Function: deleteRow, updateRow, write_to_file, splitString
-// Member_3: Function: selectCount, trim, splitString
+// Member_1: Function: create_table, insert_row, select_all, split
+// Member_2: Function: delete_row, update_row, write_to_file, split
+// Member_3: Function: select_count, trim, split
 // Member_4: Function: read_file, get_output_filename
 // *********************************************************
 
@@ -26,24 +26,24 @@ using namespace std;
 struct Row; // Structure to represent a single row in a table
 struct Table; // Structure to represent the table itself
 string trim(const string &str); // Function to trim leading and trailing spaces from a string
-void splitString(const string &str, char delimiter, vector<string> &tokens); // Function to split a string into tokens based on a delimiter
-void processFile(const string &inputFile, const string &outputFile); // Function to process the input file line by line
-void createTable(Table &table, const string &firstLine, ifstream &file); // Function to process the CREATE TABLE command
-void insertRow(Table &table, const string &line); // Function to process the INSERT INTO command
-void selectAll(const Table &table); // Function to process the SELECT * FROM command
-void selectCount(const Table &table); // Function to process the SELECT COUNT(*) command
-void updateRow(Table &table, const string &line); // Function to process the UPDATE command
-void deleteRow(Table &table, const string &line); // Function to process the DELETE FROM command
-void outputToFile(const Table &table, const string &filename); // Function to write the table to an output file
+void split(const string &str, char delimiter, vector<string> &tokens); // Function to split a string into tokens based on a delimiter
+void read_file(const string &inputFile, const string &outputFile); // Function to process the input file line by line
+void create_table(Table &table, const string &firstLine, ifstream &file); // Function to process the CREATE TABLE command
+void insert_row(Table &table, const string &line); // Function to process the INSERT INTO command
+void select_all(const Table &table); // Function to process the SELECT * FROM command
+void select_count(const Table &table); // Function to process the SELECT COUNT(*) command
+void update_row(Table &table, const string &line); // Function to process the UPDATE command
+void delete_row(Table &table, const string &line); // Function to process the DELETE FROM command
+void output_to_file(const Table &table, const string &filename); // Function to write the table to an output file
 
 
 int main()
 {
     // Input file name
-    string inputFile = "fileInput2.mdb.txt";
+    string inputFile = "fileInput3.mdb.txt";
 
     // Output file name to store the results after processing
-    string outputFile = "fileOutput2.txt";
+    string outputFile = "fileOutput3.txt";
 
     // Process the input file and write the results to the output file
     processFile(inputFile, outputFile);
@@ -76,7 +76,7 @@ string trim(const string &str)
 }
 
 // Function to split a string into tokens based on a given delimiter
-void splitString(const string &str, char delimiter, vector<string> &tokens)
+void split(const string &str, char delimiter, vector<string> &tokens)
 {
     size_t start = 0, end; // Starting position for the search
 
@@ -93,7 +93,7 @@ void splitString(const string &str, char delimiter, vector<string> &tokens)
 }
 
 // Function to process the input file containing SQL-like commands
-void processFile(const string &inputFile, const string &outputFile)
+void read_file(const string &inputFile, const string &outputFile)
 {
     ifstream file(inputFile); // Open the input file
     Table table; // Create a Table structure to store the data
@@ -142,7 +142,7 @@ void processFile(const string &inputFile, const string &outputFile)
         file.close(); // Close the input file
 
         // Write the processed table to the output file
-        outputToFile(table, outputFile);
+        read_file(table, outputFile);
     }
     else
     {
@@ -152,7 +152,7 @@ void processFile(const string &inputFile, const string &outputFile)
 }
 
 // Function to process the CREATE TABLE command
-void createTable(Table &table, const string &firstLine, ifstream &file)
+void create_table(Table &table, const string &firstLine, ifstream &file)
 {
     size_t startPos = firstLine.find('('); // Find the opening parenthesis '(' in the command
     string line = firstLine; // Copy the first line of the command
@@ -191,7 +191,7 @@ void createTable(Table &table, const string &firstLine, ifstream &file)
         // Check if too many columns were defined
         if (columnDefs.size() > 10)
         {
-            cout << "> Error: More than 10 columns in CREATE TABLE." << endl;
+            cout << ">Error: More than 10 columns in CREATE TABLE." << endl;
             return;
         }
 
@@ -221,7 +221,7 @@ void createTable(Table &table, const string &firstLine, ifstream &file)
 }
 
 // Function to process the INSERT INTO command
-void insertRow(Table &table, const string &line)
+void insert_row(Table &table, const string &line)
 {
     size_t valuesPos = line.find("VALUES("); // Find the position of "VALUES(" in the command
 
@@ -278,7 +278,7 @@ void insertRow(Table &table, const string &line)
 }
 
 // Function to process the SELECT * FROM command
-void selectAll(const Table &table)
+void select_all(const Table &table)
 {
     // Display the SELECT * FROM command
     cout << "> SELECT * FROM " << table.name << ";" << endl;
@@ -304,7 +304,7 @@ void selectAll(const Table &table)
 }
 
 // Function to process the SELECT COUNT(*) FROM command
-void selectCount(const Table &table)
+void select_count(const Table &table)
 {
     // Display the SELECT COUNT(*) FROM command
     cout << "> SELECT COUNT(*) FROM " << table.name << ";" << endl;
@@ -314,7 +314,7 @@ void selectCount(const Table &table)
 }
 
 // Function to process the UPDATE command
-void updateRow(Table &table, const string &line)
+void update_row(Table &table, const string &line)
 {
     size_t setPos = line.find("SET"); // Find the position of the SET clause
     size_t wherePos = line.find("WHERE"); // Find the position of the WHERE clause
@@ -374,7 +374,7 @@ void updateRow(Table &table, const string &line)
 }
 
 // Function to process the DELETE FROM command
-void deleteRow(Table &table, const string &line)
+void delete_row(Table &table, const string &line)
 {
     size_t wherePos = line.find("WHERE"); // Find the position of the WHERE clause
 
@@ -420,7 +420,7 @@ void deleteRow(Table &table, const string &line)
 }
 
 // Function to write the table content to an output file
-void outputToFile(const Table &table, const string &filename)
+void output_to_file(const Table &table, const string &filename)
 {
     ofstream outFile(filename); // Open the output file for writing
 
@@ -455,4 +455,3 @@ void outputToFile(const Table &table, const string &filename)
         cout << "Error: Couldn't write to file." << endl;
     }
 }
-
