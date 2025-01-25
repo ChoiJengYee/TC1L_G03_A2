@@ -65,29 +65,44 @@ void read_to_file(const string &inputFile, const string &outputFile)
     Table table;              // Create an empty table object to store table data
     string line;              // Variable to store each line read from the file
 
-    if (file.is_open()) {     // Check if the file is opened successfully
-        while (getline(file, line)) { // Read each line from the file
+    if (file.is_open()) // Check if the file is opened successfully
+    {     
+        while (getline(file, line)) // Read each line from the file
+        { 
             line = trim_whitespace(line);        // Remove leading and trailing spaces from the line
             if (line.empty()) continue; // Skip empty lines
 
-            if (line.find("CREATE TABLE") == 0) {
+            if (line.find("CREATE TABLE") == 0) 
+            {
                 create_table(table, line, file); // Call function to create a table
-            } else if (line.find("INSERT INTO") == 0) {
+            } 
+            else if (line.find("INSERT INTO") == 0) 
+            {
                 insert_row(table, line); // Call function to insert a row into the table
-            } else if (line.find("SELECT * FROM") == 0) {
+            } 
+            else if (line.find("SELECT * FROM") == 0) 
+            {
                 select_all(table); // Call function to select and display all rows from the table
-            } else if (line.find("UPDATE") == 0) {
+            } 
+            else if (line.find("UPDATE") == 0) 
+            {
                 update_row(table, line); // Call function to update a row based on the condition
-            } else if (line.find("DELETE FROM") == 0) {
+            } 
+            else if (line.find("DELETE FROM") == 0) 
+            {
                 delete_row(table, line); // Call function to delete a row based on the condition
-            } else if (line.find("SELECT COUNT(*) FROM") == 0) {
+            } 
+            else if (line.find("SELECT COUNT(*) FROM") == 0) 
+            {
                 select_count(table); // Call function to count the number of rows in the table
 
             }
         }
         file.close(); // Close the file after processing all lines
         output_to_file(table, outputFile); // Write the processed table data to the output file
-    } else {
+    } 
+    else 
+    {
         cout << "> Error: Unable to open file " << inputFile << endl; // Display error if the file can't be opened
     }
 }
@@ -104,7 +119,8 @@ string trim_whitespace(const string &str)
 void split_string(const string &str, char delimiter, vector<string> &tokens)
 {
     size_t start = 0, end;
-    while ((end = str.find(delimiter, start)) != string::npos) { // Find delimiter in the string
+    while ((end = str.find(delimiter, start)) != string::npos) // Find delimiter in the string
+    { 
         tokens.push_back(trim_whitespace(str.substr(start, end - start))); // Add substring before delimiter to tokens
         start = end + 1; // Move start position after the delimiter
     }
@@ -118,18 +134,23 @@ void create_table(Table &table, const string &firstLine, ifstream &file)
     string line = firstLine;
     string columnStr;
 
-    if (startPos != string::npos) { // If opening parenthesis is found
+    if (startPos != string::npos) // If opening parenthesis is found
+    { 
         table.name = trim_whitespace(firstLine.substr(13, startPos - 13)); // Extract table name (assuming it's after "CREATE TABLE ")
 
         columnStr = firstLine.substr(startPos + 1); // Get column definition part after '('
-        while (columnStr.find(')') == string::npos && getline(file, line)) {
+        while (columnStr.find(')') == string::npos && getline(file, line)) 
+        {
             columnStr += " " + trim_whitespace(line); // Concatenate lines until the closing parenthesis is found
         }
 
         size_t endPos = columnStr.find(')');
-        if (endPos != string::npos) {
+        if (endPos != string::npos) 
+        {
             columnStr = columnStr.substr(0, endPos); // Extract column definitions before ')'
-        } else {
+        } 
+        else 
+        {
             cout << "> Error: Missing closing parenthesis in CREATE TABLE." << endl;
             return;
         }
@@ -137,21 +158,26 @@ void create_table(Table &table, const string &firstLine, ifstream &file)
         vector<string> columnDefs;
         split_string(columnStr, ',', columnDefs); // Split column definitions by commas
 
-        if (columnDefs.size() > 10) { // Check if the number of columns exceeds the limit of 10
+        if (columnDefs.size() > 10) // Check if the number of columns exceeds the limit of 10
+        { 
             cout << "> Error: CREATE TABLE cannot have more than 10 columns." << endl;
             exit(EXIT_FAILURE);
         }
 
-        for (const auto &col : columnDefs) {
+        for (const auto &col : columnDefs) 
+        {
             size_t spacePos = col.find(' '); // Find space between column name and type
-            if (spacePos != string::npos) {
+            if (spacePos != string::npos) 
+            {
                 table.columns.push_back(trim_whitespace(col.substr(0, spacePos))); // Add column name to columns list
-            } else {
+            } else 
+            {
                 table.columns.push_back(trim_whitespace(col)); // If no type, just add the column name
             }
         }
         cout << "> Table created: " << table.name << endl; // Confirm table creation
-    } else {
+    } else 
+    {
         cout << "> Error: Invalid CREATE TABLE syntax." << endl; // Error if '(' is not found
     }
 }
@@ -160,10 +186,12 @@ void create_table(Table &table, const string &firstLine, ifstream &file)
 void insert_row(Table &table, const string &line)
 {
     size_t valuesPos = line.find("VALUES("); // Find the "VALUES" part in the SQL command
-    if (valuesPos != string::npos) { // If "VALUES" is found
+    if (valuesPos != string::npos) // If "VALUES" is found
+    { 
         size_t startPos = valuesPos + 7; // Start position after "VALUES("
         size_t endPos = line.find(")", startPos); // Find the closing parenthesis of values
-        if (endPos == string::npos) {
+        if (endPos == string::npos) 
+        {
             cout << "> Error: Missing closing parenthesis in INSERT statement." << endl;
             return;
         }
@@ -172,21 +200,26 @@ void insert_row(Table &table, const string &line)
         vector<string> tokens;
         split_string(valuesStr, ',', tokens); // Split the values by commas
 
-        if (tokens.size() == table.columns.size()) { // Check if the number of values matches the number of columns
+        if (tokens.size() == table.columns.size())  // Check if the number of values matches the number of columns
+        {
             Row row;
-            for (auto &token : tokens) {
+            for (auto &token : tokens) 
+            {
                 token = trim_whitespace(token); // Trim each value
-                if (!token.empty() && token.front() == '\'' && token.back() == '\'') {
+                if (!token.empty() && token.front() == '\'' && token.back() == '\'') 
+                {
                     token = token.substr(1, token.size() - 2); // Remove quotes around string values
                 }
                 row.data.push_back(token); // Add the value to the row
             }
             table.rows.push_back(row); // Add the row to the table
             cout << "> Row inserted into " << table.name << endl;
-        } else {
+        } else 
+        {
             cout << "> Error: Column count mismatch in INSERT statement." << endl;
         }
-    } else {
+    } else 
+    {
         cout << "> Error: Invalid INSERT syntax." << endl;
     }
 }
@@ -195,16 +228,22 @@ void insert_row(Table &table, const string &line)
 void select_all(const Table &table)
 {
     cout << "> SELECT * FROM " << table.name << ";" << endl; // Display the SELECT statement
-    for (size_t i = 0; i < table.columns.size(); ++i) { // Display column names
+    for (size_t i = 0; i < table.columns.size(); ++i) // Display column names
+    { 
         cout << table.columns[i];
         if (i < table.columns.size() - 1) cout << ",";
     }
     cout << endl;
 
-    for (const auto &row : table.rows) { // Display each row's data
-        for (size_t i = 0; i < row.data.size(); ++i) {
+    for (const auto &row : table.rows) // Display each row's data
+    { 
+        for (size_t i = 0; i < row.data.size(); ++i) 
+        {
             cout << row.data[i];
-            if (i < row.data.size() - 1) cout << ",";
+            if (i < row.data.size() - 1) 
+            {
+                cout << ",";
+            }
         }
         cout << endl;
     }
@@ -216,7 +255,8 @@ void update_row(Table &table, const string &line)
     size_t setPos = line.find("SET"); // Find the "SET" clause in the UPDATE command
     size_t wherePos = line.find("WHERE"); // Find the "WHERE" clause in the UPDATE command
 
-    if (setPos == string::npos || wherePos == string::npos) {
+    if (setPos == string::npos || wherePos == string::npos) 
+    {
         cout << "> Error: Invalid UPDATE syntax." << endl;
         return;
     }
@@ -225,7 +265,8 @@ void update_row(Table &table, const string &line)
     string wherePart = trim_whitespace(line.substr(wherePos + 5));  // Extract "WHERE" part
 
     size_t equalsPos = setPart.find("="); // Find the "=" in the "SET" part
-    if (equalsPos == string::npos) {
+    if (equalsPos == string::npos) 
+    {
         cout << "> Error: Invalid SET syntax." << endl;
         return;
     }
@@ -233,12 +274,14 @@ void update_row(Table &table, const string &line)
     string columnToUpdate = trim_whitespace(setPart.substr(0, equalsPos)); // Get the column name to update
     string newValue = trim_whitespace(setPart.substr(equalsPos + 1)); // Get the new value to update
 
-    if (newValue.front() == '\'' && newValue.back() == '\'') {
+    if (newValue.front() == '\'' && newValue.back() == '\'') 
+    {
         newValue = newValue.substr(1, newValue.size() - 2); // Remove quotes from string values
     }
 
     size_t whereEqualsPos = wherePart.find("="); // Find the "=" in the "WHERE" part
-    if (whereEqualsPos == string::npos) {
+    if (whereEqualsPos == string::npos) 
+    {
         cout << "> Error: Invalid WHERE clause." << endl;
         return;
     }
@@ -256,10 +299,14 @@ void update_row(Table &table, const string &line)
         }
     }
 
-    for (auto &row : table.rows) {
-        if (whereColumn == "customer_id" && stoi(row.data[0]) == whereIntValue) {  // Check customer_id
-            for (size_t i = 0; i < table.columns.size(); ++i) { // Find the column to update
-                if (table.columns[i] == columnToUpdate) {
+    for (auto &row : table.rows) 
+    {
+        if (whereColumn == "customer_id" && stoi(row.data[0]) == whereIntValue) // Check customer_id
+        {  
+            for (size_t i = 0; i < table.columns.size(); ++i) // Find the column to update
+            { 
+                if (table.columns[i] == columnToUpdate) 
+                {
                     row.data[i] = newValue; // Update the column value
                     cout << "> Row updated." << endl;
                     return;
@@ -277,14 +324,16 @@ void update_row(Table &table, const string &line)
 void delete_row(Table &table, const string &line)
 {
     size_t wherePos = line.find("WHERE"); // Find the WHERE clause in the DELETE command
-    if (wherePos == string::npos) {
+    if (wherePos == string::npos) 
+    {
         cout << "> Error: WHERE clause missing." << endl;
         return;
     }
 
     string wherePart = trim_whitespace(line.substr(wherePos + 5));  // Extract the WHERE part
     size_t whereEqualPos = wherePart.find("="); // Find the equal sign in the WHERE clause
-    if (whereEqualPos == string::npos) {
+    if (whereEqualPos == string::npos) 
+    {
         cout << "> Error: Invalid WHERE syntax." << endl;
         return;
     }
@@ -292,22 +341,29 @@ void delete_row(Table &table, const string &line)
     string whereColumn = trim_whitespace(wherePart.substr(0, whereEqualPos)); // Get the column name from WHERE
     string whereValue = trim_whitespace(wherePart.substr(whereEqualPos + 1)); // Get the value from WHERE
 
-    if (whereValue.front() == '\'' && whereValue.back() == '\'') {
+    if (whereValue.front() == '\'' && whereValue.back() == '\'') 
+    {
         whereValue = whereValue.substr(1, whereValue.size() - 2); // Remove quotes from string values
     }
 
     int whereIntValue = -1;
-    if (whereColumn == "customer_id") {
-        try {
+    if (whereColumn == "customer_id") 
+    {
+        try
+        {
             whereIntValue = stoi(whereValue);  // Convert the value to integer
-        } catch (const invalid_argument &e) {
+        } 
+        catch (const invalid_argument &e) 
+        {
             cout << "> Error: Invalid customer_id value." << endl;
             return;
         }
     }
 
-    for (auto it = table.rows.begin(); it != table.rows.end(); ++it) {
-        if (whereColumn == "customer_id" && stoi(it->data[0]) == whereIntValue) {  // Check customer_id
+    for (auto it = table.rows.begin(); it != table.rows.end(); ++it) 
+    {
+        if (whereColumn == "customer_id" && stoi(it->data[0]) == whereIntValue) // Check customer_id
+        { 
             table.rows.erase(it);  // Delete the row
             cout << "> Row deleted." << endl;
             return;
@@ -328,13 +384,15 @@ void select_count(const Table &table)
 void output_to_file(const Table &table, const string &filename)
 {
     ofstream file(filename); // Open output file for writing
-    if (file.is_open()) { // Check if the file is opened successfully
+    if (file.is_open()) // Check if the file is opened successfully
+    {
         file << ">CREATE fileOutput2.txt;" << endl;
         file << ">DATABASES;" << endl;
         file << "C:\\Users\\Gloria\\Documents\\FCI\\fileInput2.mdb.txt" << endl;
 
         file << ">CREATE TABLE " << table.name << "(" << endl; // Write CREATE TABLE statement
-        for (size_t i = 0; i < table.columns.size(); ++i) { // Write column names
+        for (size_t i = 0; i < table.columns.size(); ++i) 
+        { 
             file << table.columns[i];
             if (i < table.columns.size() - 1) file << ",";
             file << endl;
@@ -342,9 +400,11 @@ void output_to_file(const Table &table, const string &filename)
         file << ");" << endl;
         file << ">INSERT INTO " << table.name << " VALUES" << endl;
 
-        for (const auto &row : table.rows) { // Write the data rows
+        for (const auto &row : table.rows) // Write the data rows
+        { 
             file << "(";
-            for (size_t i = 0; i < row.data.size(); ++i) {
+            for (size_t i = 0; i < row.data.size(); ++i) 
+            {
                 file << "'" << row.data[i] << "'";
                 if (i < row.data.size() - 1) file << ",";
             }
@@ -353,7 +413,9 @@ void output_to_file(const Table &table, const string &filename)
 
         cout << "> Output written to " << filename << endl; // Display success message
         file.close(); // Close the output file
-    } else {
+    } 
+    else 
+    {
         cout << "> Error: Unable to write to file " << filename << endl; // Display error if file can't be opened
     }
 }
