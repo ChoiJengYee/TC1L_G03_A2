@@ -11,9 +11,9 @@
 // *********************************************************
 // Task Distribution
 // Member_1: Function: create_table, insert_row, select_all, split_string
-// Member_2: Function: delete_row, update_row, write_to_file, split_string
+// Member_2: Function: delete_row, update_row, read_to_file, split_string
 // Member_3: Function: select_count, trim, split_string
-// Member_4: Function: read_to_file, get_output_filename
+// Member_4: Function: read_to_file, output_to_file
 // *********************************************************
 
 #include <iostream>
