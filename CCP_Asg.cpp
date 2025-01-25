@@ -26,6 +26,8 @@ using namespace std;
 struct Row; // Structure to represent a single row in a table
 struct Table; // Structure to represent the table itself
 string trim(const string &str); // Function to trim leading and trailing spaces from a string
+void splitString(const string &str, char delimiter, vector<string> &tokens); // Function to split a string into tokens based on a delimiter
+void processFile(const string &inputFile, const string &outputFile); // Function to process the input file line by line
 void createTable(Table &table, const string &firstLine, ifstream &file); // Function to process the CREATE TABLE command
 void insertRow(Table &table, const string &line); // Function to process the INSERT INTO command
 void selectAll(const Table &table); // Function to process the SELECT * FROM command
@@ -33,8 +35,6 @@ void selectCount(const Table &table); // Function to process the SELECT COUNT(*)
 void updateRow(Table &table, const string &line); // Function to process the UPDATE command
 void deleteRow(Table &table, const string &line); // Function to process the DELETE FROM command
 void outputToFile(const Table &table, const string &filename); // Function to write the table to an output file
-void processFile(const string &inputFile, const string &outputFile); // Function to process the input file line by line
-void splitString(const string &str, char delimiter, vector<string> &tokens); // Function to split a string into tokens based on a delimiter
 
 
 int main()
