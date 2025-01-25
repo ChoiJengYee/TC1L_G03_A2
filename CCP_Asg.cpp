@@ -10,9 +10,9 @@
 // Member_4: 242UC244PB | LEM JOE ERN | LEM.JOE.ERN@student.mmu.edu.my | 016-2237965
 // *********************************************************
 // Task Distribution
-// Member_1: Function: create_table, insert_row, select_all, split
-// Member_2: Function: delete_row, update_row, write_to_file, split
-// Member_3: Function: select_count, trim, split
+// Member_1: Function: create_table, insert_row, select_all, split_string
+// Member_2: Function: delete_row, update_row, write_to_file, split_string
+// Member_3: Function: select_count, trim, split_string
 // Member_4: Function: read_file, get_output_filename
 // *********************************************************
 
@@ -23,435 +23,335 @@
 using namespace std;
 
 // Function Prototypes
-struct Row; // Structure to represent a single row in a table
-struct Table; // Structure to represent the table itself
-string trim(const string &str); // Function to trim leading and trailing spaces from a string
-void split(const string &str, char delimiter, vector<string> &tokens); // Function to split a string into tokens based on a delimiter
-void read_file(const string &inputFile, const string &outputFile); // Function to process the input file line by line
-void create_table(Table &table, const string &firstLine, ifstream &file); // Function to process the CREATE TABLE command
-void insert_row(Table &table, const string &line); // Function to process the INSERT INTO command
-void select_all(const Table &table); // Function to process the SELECT * FROM command
-void select_count(const Table &table); // Function to process the SELECT COUNT(*) command
-void update_row(Table &table, const string &line); // Function to process the UPDATE command
-void delete_row(Table &table, const string &line); // Function to process the DELETE FROM command
-void output_to_file(const Table &table, const string &filename); // Function to write the table to an output file
+struct Row;
+struct Table;
+string trim(const string &str);  // Function to remove leading/trailing spaces from a string
+void split_string(const string &str, char delimiter, vector<string> &tokens); // Function to split a string by a delimiter
+void read_to_file(const string &inputFile, const string &outputFile); // Function to read input and write to output file
+void create_table(Table &table, const string &firstLine, ifstream &file); // Function to create a table
+void insert_row(Table &table, const string &line); // Function to insert a new row into a table
+void select_all(const Table &table); // Function to display all rows in a table
+void select_count(const Table &table); // Function to count the number of rows in a table
+void update_row(Table &table, const string &line); // Function to update a row based on a condition
+void delete_row(Table &table, const string &line); // Function to delete a row based on a condition
+void output_to_file(const Table &table, const string &filename); // Function to write table data to a file
 
 
 int main()
 {
-    // Input file name
-    string inputFile = "fileInput3.mdb.txt";
-
-    // Output file name to store the results after processing
-    string outputFile = "fileOutput3.txt";
-
-    // Process the input file and write the results to the output file
-    processFile(inputFile, outputFile);
-
+    string inputFile = "fileInput2.mdb.txt"; // Input file containing SQL commands
+    string outputFile = "fileOutput2.txt"; // Output file to store results
+    read_to_file(inputFile, outputFile); // Read from input and write the processed data to output file
     return 0;
 }
 
-// Structure to represent a single row in the table
 struct Row
 {
-    vector<string> data; // Stores the values for each column in the row
+    vector<string> data; // Stores data for each row as a vector of strings
 };
 
-// Structure to represent the table
 struct Table
 {
-    string name; // Name of the table
-    vector<string> columns; // List of column names for the table
-    vector<Row> rows; // Rows in the table
+    string name;              // Name of the table
+    vector<string> columns;   // List of column names
+    vector<Row> rows;         // List of rows in the table
 };
+
+// Function to read the input file and process SQL commands
+void read_to_file(const string &inputFile, const string &outputFile)
+{
+    ifstream file(inputFile); // Open the input file for reading
+    Table table;              // Create an empty table object to store table data
+    string line;              // Variable to store each line read from the file
+
+    if (file.is_open()) {     // Check if the file is opened successfully
+        while (getline(file, line)) { // Read each line from the file
+            line = trim(line);        // Remove leading and trailing spaces from the line
+            if (line.empty()) continue; // Skip empty lines
+
+            if (line.find("CREATE TABLE") == 0) {
+                create_table(table, line, file); // Call function to create a table
+            } else if (line.find("INSERT INTO") == 0) {
+                insert_row(table, line); // Call function to insert a row into the table
+            } else if (line.find("SELECT * FROM") == 0) {
+                select_all(table); // Call function to select and display all rows from the table
+            } else if (line.find("SELECT COUNT(*) FROM") == 0) {
+                select_count(table); // Call function to count the number of rows in the table
+            } else if (line.find("DELETE FROM") == 0) {
+                delete_row(table, line); // Call function to delete a row based on the condition
+            } else if (line.find("UPDATE") == 0) {
+                update_row(table, line); // Call function to update a row based on the condition
+            }
+        }
+        file.close(); // Close the file after processing all lines
+        output_to_file(table, outputFile); // Write the processed table data to the output file
+    } else {
+        cout << "> Error: Unable to open file " << inputFile << endl; // Display error if the file can't be opened
+    }
+}
 
 // Function to trim leading and trailing spaces from a string
 string trim(const string &str)
 {
-    size_t start = str.find_first_not_of(" \t\n\r"); // Find the first non-space character
-    size_t end = str.find_last_not_of(" \t\n\r"); // Find the last non-space character
-
-    // Return the trimmed string or an empty string if no non-space characters exist
-    return (start == string::npos) ? "" : str.substr(start, end - start + 1);
+    size_t start = str.find_first_not_of(" \t\n\r"); // Find the first non-whitespace character
+    size_t end = str.find_last_not_of(" \t\n\r"); // Find the last non-whitespace character
+    return (start == string::npos) ? "" : str.substr(start, end - start + 1); // Return trimmed string
 }
 
-// Function to split a string into tokens based on a given delimiter
-void split(const string &str, char delimiter, vector<string> &tokens)
+// Function to split a string by a delimiter (e.g., comma) and store tokens in a vector
+void split_string(const string &str, char delimiter, vector<string> &tokens)
 {
-    size_t start = 0, end; // Starting position for the search
-
-    // Loop to find and extract tokens separated by the delimiter
-    while ((end = str.find(delimiter, start)) != string::npos)
-    {
-        // Extract and trim the current token, then add it to the tokens vector
-        tokens.push_back(trim(str.substr(start, end - start)));
-        start = end + 1; // Move the starting position past the delimiter
+    size_t start = 0, end;
+    while ((end = str.find(delimiter, start)) != string::npos) { // Find delimiter in the string
+        tokens.push_back(trim(str.substr(start, end - start))); // Add substring before delimiter to tokens
+        start = end + 1; // Move start position after the delimiter
     }
-
-    // Add the last token after the final delimiter
-    tokens.push_back(trim(str.substr(start)));
+    tokens.push_back(trim(str.substr(start))); // Add the last substring (after the last delimiter)
 }
 
-// Function to process the input file containing SQL-like commands
-void read_file(const string &inputFile, const string &outputFile)
-{
-    ifstream file(inputFile); // Open the input file
-    Table table; // Create a Table structure to store the data
-    string line; // String to store the current line being read
-
-    if (file.is_open()) // Check if the file was opened successfully
-    {
-        while (getline(file, line)) // Read each line from the file
-        {
-            line = trim(line); // Remove leading and trailing spaces from the line
-
-            if (line.empty()) continue; // Skip empty lines
-
-            // Check the type of SQL command in the current line
-            if (line.find("CREATE TABLE") == 0)
-            {
-                // Process the CREATE TABLE command
-                createTable(table, line, file);
-            }
-            else if (line.find("INSERT INTO") == 0)
-            {
-                // Process the INSERT INTO command
-                insertRow(table, line);
-            }
-            else if (line.find("SELECT * FROM") == 0)
-            {
-                // Process the SELECT * FROM command
-                selectAll(table);
-            }
-            else if (line.find("SELECT COUNT(*) FROM") == 0)
-            {
-                // Process the SELECT COUNT(*) FROM command
-                selectCount(table);
-            }
-            else if (line.find("DELETE FROM") == 0)
-            {
-                // Process the DELETE FROM command
-                deleteRow(table, line);
-            }
-            else if (line.find("UPDATE") == 0)
-            {
-                // Process the UPDATE command
-                updateRow(table, line);
-            }
-        }
-        file.close(); // Close the input file
-
-        // Write the processed table to the output file
-        read_file(table, outputFile);
-    }
-    else
-    {
-        // Display an error message if the input file could not be opened
-        cout << "File can't be opened" << inputFile << endl;
-    }
-}
-
-// Function to process the CREATE TABLE command
+// Function to create a table by parsing the "CREATE TABLE" SQL command
 void create_table(Table &table, const string &firstLine, ifstream &file)
 {
-    size_t startPos = firstLine.find('('); // Find the opening parenthesis '(' in the command
-    string line = firstLine; // Copy the first line of the command
-    string columnStr; // String to store the column definitions
+    size_t startPos = firstLine.find('('); // Find the position of opening parenthesis for columns
+    string line = firstLine;
+    string columnStr;
 
-    if (startPos != string::npos) // Check if the '(' was found
-    {
-        // Extract the table name from the command
-        table.name = trim(firstLine.substr(13, startPos - 13));
+    if (startPos != string::npos) { // If opening parenthesis is found
+        table.name = trim(firstLine.substr(13, startPos - 13)); // Extract table name (assuming it's after "CREATE TABLE ")
 
-        // Read the column definitions from subsequent lines if necessary
-        columnStr = firstLine.substr(startPos + 1); // Start after '('
-        while (columnStr.find(')') == string::npos && getline(file, line))
-        {
-            // Append and trim lines until the closing parenthesis ')' is found
-            columnStr += " " + trim(line);
+        columnStr = firstLine.substr(startPos + 1); // Get column definition part after '('
+        while (columnStr.find(')') == string::npos && getline(file, line)) {
+            columnStr += " " + trim(line); // Concatenate lines until the closing parenthesis is found
         }
 
-        // Extract everything before the closing parenthesis ')'
         size_t endPos = columnStr.find(')');
-        if (endPos != string::npos)
-        {
-            columnStr = columnStr.substr(0, endPos);
-        }
-        else
-        {
-            // Display an error if the closing parenthesis ')' is missing
-            cout << "Error: Missing closing parenthesis in CREATE TABLE." << endl;
+        if (endPos != string::npos) {
+            columnStr = columnStr.substr(0, endPos); // Extract column definitions before ')'
+        } else {
+            cout << "> Error: Missing closing parenthesis in CREATE TABLE." << endl;
             return;
         }
 
-        // Split the column definitions into individual column names
         vector<string> columnDefs;
-        splitString(columnStr, ',', columnDefs);
+        split_string(columnStr, ',', columnDefs); // Split column definitions by commas
 
-        // Check if too many columns were defined
-        if (columnDefs.size() > 10)
-        {
-            cout << ">Error: More than 10 columns in CREATE TABLE." << endl;
-            return;
+        if (columnDefs.size() > 10) { // Check if the number of columns exceeds the limit of 10
+            cout << "> Error: CREATE TABLE cannot have more than 10 columns." << endl;
+            exit(EXIT_FAILURE);
         }
 
-        // Extract column names from the definitions
-        for (const auto &col : columnDefs)
-        {
-            size_t spacePos = col.find(' '); // Find the space between column name and type
-            if (spacePos != string::npos)
-            {
-                // Add the column name to the table
-                table.columns.push_back(trim(col.substr(0, spacePos)));
-            }
-            else
-            {
-                // Add the column as is if no type is specified
-                table.columns.push_back(trim(col));
+        for (const auto &col : columnDefs) {
+            size_t spacePos = col.find(' '); // Find space between column name and type
+            if (spacePos != string::npos) {
+                table.columns.push_back(trim(col.substr(0, spacePos))); // Add column name to columns list
+            } else {
+                table.columns.push_back(trim(col)); // If no type, just add the column name
             }
         }
-        // Display a message indicating the table was created
-        cout << "> Table " << table.name << " has been created!" << endl;
-    }
-    else
-    {
-        // Display an error if the CREATE TABLE syntax is incorrect
-        cout << "Error: Something went wrong with CREATE TABLE syntax." << endl;
+        cout << "> Table created: " << table.name << endl; // Confirm table creation
+    } else {
+        cout << "> Error: Invalid CREATE TABLE syntax." << endl; // Error if '(' is not found
     }
 }
 
-// Function to process the INSERT INTO command
+// Function to insert a row into the table by parsing the "INSERT INTO" SQL command
 void insert_row(Table &table, const string &line)
 {
-    size_t valuesPos = line.find("VALUES("); // Find the position of "VALUES(" in the command
-
-    if (valuesPos != string::npos) // Check if "VALUES(" is present in the command
-    {
-        size_t startPos = valuesPos + 7; // Starting position for the values (after "VALUES(")
-        size_t endPos = line.find(")", startPos); // Find the closing parenthesis for the values
-
-        if (endPos == string::npos) // Check if the closing parenthesis is missing
-        {
-            cout << "Error: Missing closing parenthesis in INSERT statement." << endl;
+    size_t valuesPos = line.find("VALUES("); // Find the "VALUES" part in the SQL command
+    if (valuesPos != string::npos) { // If "VALUES" is found
+        size_t startPos = valuesPos + 7; // Start position after "VALUES("
+        size_t endPos = line.find(")", startPos); // Find the closing parenthesis of values
+        if (endPos == string::npos) {
+            cout << "> Error: Missing closing parenthesis in INSERT statement." << endl;
             return;
         }
 
-        // Extract the values string from the command
-        string valuesStr = line.substr(startPos, endPos - startPos);
-        vector<string> tokens; // Vector to store the individual values
+        string valuesStr = line.substr(startPos, endPos - startPos); // Extract values part
+        vector<string> tokens;
+        split_string(valuesStr, ',', tokens); // Split the values by commas
 
-        // Split the values string into individual tokens
-        splitString(valuesStr, ',', tokens);
-
-        // Check if the number of values matches the number of columns in the table
-        if (tokens.size() == table.columns.size())
-        {
-            Row row; // Create a new row to store the values
-            for (auto &token : tokens)
-            {
-                token = trim(token); // Trim leading and trailing spaces
-
-                // Check if the value is a string (enclosed in single quotes)
-                if (!token.empty() && token.front() == '\'' && token.back() == '\'')
-                {
-                    // Remove the single quotes from the value
-                    token = token.substr(1, token.size() - 2);
+        if (tokens.size() == table.columns.size()) { // Check if the number of values matches the number of columns
+            Row row;
+            for (auto &token : tokens) {
+                token = trim(token); // Trim each value
+                if (!token.empty() && token.front() == '\'' && token.back() == '\'') {
+                    token = token.substr(1, token.size() - 2); // Remove quotes around string values
                 }
-
                 row.data.push_back(token); // Add the value to the row
             }
-
             table.rows.push_back(row); // Add the row to the table
-            cout << "Row inserted into table " << table.name << endl;
+            cout << "> Row inserted into " << table.name << endl;
+        } else {
+            cout << "> Error: Column count mismatch in INSERT statement." << endl;
         }
-        else
-        {
-            // Display an error if the column count doesn't match the number of values
-            cout << "Error: Column count doesn't match the number of columns in the table!" << endl;
-        }
-    }
-    else
-    {
-        // Display an error if the INSERT syntax is incorrect
-        cout << "Error: Bad INSERT syntax!" << endl;
+    } else {
+        cout << "> Error: Invalid INSERT syntax." << endl;
     }
 }
 
-// Function to process the SELECT * FROM command
+// Function to select and display all rows from the table
 void select_all(const Table &table)
 {
-    // Display the SELECT * FROM command
-    cout << "> SELECT * FROM " << table.name << ";" << endl;
-
-    // Print the column names as a header row
-    for (size_t i = 0; i < table.columns.size(); ++i)
-    {
+    cout << "> SELECT * FROM " << table.name << ";" << endl; // Display the SELECT statement
+    for (size_t i = 0; i < table.columns.size(); ++i) { // Display column names
         cout << table.columns[i];
-        if (i < table.columns.size() - 1) cout << ", "; // Add commas between column names
+        if (i < table.columns.size() - 1) cout << ",";
     }
     cout << endl;
 
-    // Print the data rows
-    for (const auto &row : table.rows)
-    {
-        for (size_t i = 0; i < row.data.size(); ++i)
-        {
+    for (const auto &row : table.rows) { // Display each row's data
+        for (size_t i = 0; i < row.data.size(); ++i) {
             cout << row.data[i];
-            if (i < row.data.size() - 1) cout << ", "; // Add commas between values
+            if (i < row.data.size() - 1) cout << ",";
         }
         cout << endl;
     }
 }
 
-// Function to process the SELECT COUNT(*) FROM command
+// Function to count and display the number of rows in the table
 void select_count(const Table &table)
 {
-    // Display the SELECT COUNT(*) FROM command
-    cout << "> SELECT COUNT(*) FROM " << table.name << ";" << endl;
-
-    // Display the number of rows in the table
-    cout << "Number of rows: " << table.rows.size() << endl;
+    cout << "> SELECT COUNT(*) FROM " << table.name << ";" << endl; // Display the COUNT statement
+    cout << "Count: " << table.rows.size() << endl; // Display the count of rows
 }
 
-// Function to process the UPDATE command
+// Function to update a row based on the "UPDATE" SQL command
 void update_row(Table &table, const string &line)
 {
-    size_t setPos = line.find("SET"); // Find the position of the SET clause
-    size_t wherePos = line.find("WHERE"); // Find the position of the WHERE clause
+    size_t setPos = line.find("SET"); // Find the "SET" clause in the UPDATE command
+    size_t wherePos = line.find("WHERE"); // Find the "WHERE" clause in the UPDATE command
 
-    if (setPos == string::npos || wherePos == string::npos) // Check if the SET or WHERE clause is missing
-    {
-        cout << "Error: Invalid UPDATE statement." << endl;
+    if (setPos == string::npos || wherePos == string::npos) {
+        cout << "> Error: Invalid UPDATE syntax." << endl;
         return;
     }
 
-    // Extract the SET and WHERE parts of the command
-    string setPart = trim(line.substr(setPos + 3, wherePos - setPos - 3));
-    string wherePart = trim(line.substr(wherePos + 5));
+    string setPart = trim(line.substr(setPos + 3, wherePos - setPos - 3));  // Extract "SET" part
+    string wherePart = trim(line.substr(wherePos + 5));  // Extract "WHERE" part
 
-    size_t whereEqualPos = wherePart.find("="); // Find the '=' operator in the WHERE clause
-
-    if (whereEqualPos == string::npos) // Check if the WHERE clause syntax is invalid
-    {
-        cout << "Error: Incorrect syntax in WHERE clause." << endl;
+    size_t equalsPos = setPart.find("="); // Find the "=" in the "SET" part
+    if (equalsPos == string::npos) {
+        cout << "> Error: Invalid SET syntax." << endl;
         return;
     }
 
-    // Extract the column name and value from the WHERE clause
-    string whereColumn = trim(wherePart.substr(0, whereEqualPos));
-    string whereValue = trim(wherePart.substr(whereEqualPos + 1));
+    string columnToUpdate = trim(setPart.substr(0, equalsPos)); // Get the column name to update
+    string newValue = trim(setPart.substr(equalsPos + 1)); // Get the new value to update
 
-    // Remove single quotes from the value if it is a string
-    if (whereValue.front() == '\'' && whereValue.back() == '\'')
-    {
-        whereValue = whereValue.substr(1, whereValue.size() - 2);
+    if (newValue.front() == '\'' && newValue.back() == '\'') {
+        newValue = newValue.substr(1, newValue.size() - 2); // Remove quotes from string values
     }
 
-    // Iterate through the rows in the table to find and update the matching row
-    for (auto &row : table.rows)
-    {
-        if (row.data[0] == whereValue) // Check if the condition matches
-        {
-            size_t setEqualPos = setPart.find("="); // Find the '=' operator in the SET clause
-            string columnName = trim(setPart.substr(0, setEqualPos)); // Extract the column name to update
-            string columnValue = trim(setPart.substr(setEqualPos + 1)); // Extract the new value
-
-            // Update the value in the matching row
-            for (size_t i = 0; i < table.columns.size(); ++i)
-            {
-                if (table.columns[i] == columnName)
-                {
-                    row.data[i] = columnValue;
-                    cout << "Row updated!" << endl;
-                    return;
-                }
-            }
-        }
-    }
-
-    // Display an error if no matching row was found
-    cout << "Error: Row can't be found." << endl;
-}
-
-// Function to process the DELETE FROM command
-void delete_row(Table &table, const string &line)
-{
-    size_t wherePos = line.find("WHERE"); // Find the position of the WHERE clause
-
-    if (wherePos == string::npos) // Check if the WHERE clause is missing
-    {
-        cout << "Error: WHERE clause is missing." << endl;
+    size_t whereEqualsPos = wherePart.find("="); // Find the "=" in the "WHERE" part
+    if (whereEqualsPos == string::npos) {
+        cout << "> Error: Invalid WHERE clause." << endl;
         return;
     }
 
-    // Extract the condition part of the WHERE clause
-    string wherePart = trim(line.substr(wherePos + 5));
-    size_t whereEqualPos = wherePart.find("="); // Find the '=' operator in the WHERE clause
+    string whereColumn = trim(wherePart.substr(0, whereEqualsPos)); // Get column name from WHERE clause
+    string whereValue = trim(wherePart.substr(whereEqualsPos + 1)); // Get value from WHERE clause
 
-    if (whereEqualPos == string::npos) // Check if the WHERE clause syntax is invalid
-    {
-        cout << "Error: Incorrect syntax in WHERE clause." << endl;
-        return;
-    }
-
-    // Extract the column name and value from the WHERE clause
-    string whereColumn = trim(wherePart.substr(0, whereEqualPos));
-    string whereValue = trim(wherePart.substr(whereEqualPos + 1));
-
-    // Remove single quotes from the value if it is a string
-    if (whereValue.front() == '\'' && whereValue.back() == '\'')
-    {
-        whereValue = whereValue.substr(1, whereValue.size() - 2);
-    }
-
-    // Iterate through the rows in the table to find and delete the matching row
-    for (auto it = table.rows.begin(); it != table.rows.end(); ++it)
-    {
-        if (whereColumn == table.columns[0] && it->data[0] == whereValue) // Check if the condition matches
-        {
-            table.rows.erase(it); // Delete the matching row
-            cout << "Row deleted!" << endl;
+    int whereIntValue = -1;
+    if (whereColumn == "customer_id") {
+        try {
+            whereIntValue = stoi(whereValue);  // Convert whereValue to integer
+        } catch (const invalid_argument &e) {
+            cout << "> Error: Invalid customer_id value." << endl;
             return;
         }
     }
 
-    // Display an error if no matching row was found
-    cout << "Error: Row can't be found." << endl;
+    for (auto &row : table.rows) {
+        if (whereColumn == "customer_id" && stoi(row.data[0]) == whereIntValue) {  // Check customer_id
+            for (size_t i = 0; i < table.columns.size(); ++i) { // Find the column to update
+                if (table.columns[i] == columnToUpdate) {
+                    row.data[i] = newValue; // Update the column value
+                    cout << "> Row updated." << endl;
+                    return;
+                }
+            }
+            cout << "> Error: Column " << columnToUpdate << " not found." << endl;
+            return;
+        }
+    }
+
+    cout << "> Error: Row with customer_id " << whereIntValue << " not found." << endl; // Error if row is not found
 }
 
-// Function to write the table content to an output file
+// Function to delete a row based on the "DELETE FROM" SQL command
+void delete_row(Table &table, const string &line)
+{
+    size_t wherePos = line.find("WHERE"); // Find the WHERE clause in the DELETE command
+    if (wherePos == string::npos) {
+        cout << "> Error: WHERE clause missing." << endl;
+        return;
+    }
+
+    string wherePart = trim(line.substr(wherePos + 5));  // Extract the WHERE part
+    size_t whereEqualPos = wherePart.find("="); // Find the equal sign in the WHERE clause
+    if (whereEqualPos == string::npos) {
+        cout << "> Error: Invalid WHERE syntax." << endl;
+        return;
+    }
+
+    string whereColumn = trim(wherePart.substr(0, whereEqualPos)); // Get the column name from WHERE
+    string whereValue = trim(wherePart.substr(whereEqualPos + 1)); // Get the value from WHERE
+
+    if (whereValue.front() == '\'' && whereValue.back() == '\'') {
+        whereValue = whereValue.substr(1, whereValue.size() - 2); // Remove quotes from string values
+    }
+
+    int whereIntValue = -1;
+    if (whereColumn == "customer_id") {
+        try {
+            whereIntValue = stoi(whereValue);  // Convert the value to integer
+        } catch (const invalid_argument &e) {
+            cout << "> Error: Invalid customer_id value." << endl;
+            return;
+        }
+    }
+
+    for (auto it = table.rows.begin(); it != table.rows.end(); ++it) {
+        if (whereColumn == "customer_id" && stoi(it->data[0]) == whereIntValue) {  // Check customer_id
+            table.rows.erase(it);  // Delete the row
+            cout << "> Row deleted." << endl;
+            return;
+        }
+    }
+
+    cout << "> Error: Row not found." << endl; // Display error if no matching row is found
+}
+
+// Function to output the table data to the file
 void output_to_file(const Table &table, const string &filename)
 {
-    ofstream outFile(filename); // Open the output file for writing
+    ofstream file(filename); // Open output file for writing
+    if (file.is_open()) { // Check if the file is opened successfully
+        file << ">CREATE fileOutput2.txt;" << endl;
+        file << ">DATABASES;" << endl;
+        file << "C:\\Users\\Gloria\\Documents\\FCI\\fileInput2.mdb.txt" << endl;
 
-    if (outFile.is_open()) // Check if the output file was opened successfully
-    {
-        // Write the table name to the output file
-        outFile << table.name << endl;
-
-        // Write the column names to the output file
-        for (const auto &col : table.columns)
-        {
-            outFile << col << " ";
+        file << ">CREATE TABLE " << table.name << "(" << endl; // Write CREATE TABLE statement
+        for (size_t i = 0; i < table.columns.size(); ++i) { // Write column names
+            file << table.columns[i];
+            if (i < table.columns.size() - 1) file << ",";
+            file << endl;
         }
-        outFile << endl;
+        file << ");" << endl;
+        file << ">INSERT INTO " << table.name << " VALUES" << endl;
 
-        // Write the data rows to the output file
-        for (const auto &row : table.rows)
-        {
-            for (size_t i = 0; i < row.data.size(); ++i)
-            {
-                outFile << row.data[i] << " ";
+        for (const auto &row : table.rows) { // Write the data rows
+            file << "(";
+            for (size_t i = 0; i < row.data.size(); ++i) {
+                file << "'" << row.data[i] << "'";
+                if (i < row.data.size() - 1) file << ",";
             }
-            outFile << endl;
+            file << ")" << endl;
         }
 
-        outFile.close(); // Close the output file
-        cout << "Output written to " << filename << endl; // Display a success message
-    }
-    else
-    {
-        // Display an error message if the output file could not be opened
-        cout << "Error: Couldn't write to file." << endl;
+        cout << "> Output written to " << filename << endl; // Display success message
+        file.close(); // Close the output file
+    } else {
+        cout << "> Error: Unable to write to file " << filename << endl; // Display error if file can't be opened
     }
 }
