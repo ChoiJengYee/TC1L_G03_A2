@@ -1,5 +1,5 @@
 // *********************************************************
-// Program: CCP_Asg.cpp
+// Program: TC1L_G03_main.cpp
 // Course: CCP6114 Programming Fundamentals
 // Lecture Class: TC1L
 // Tutorial Class: TT1L
