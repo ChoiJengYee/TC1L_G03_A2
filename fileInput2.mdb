@@ -20,3 +20,4 @@ UPDATE customer SET customer_email='updatedemail@example.com' WHERE customer_id=
 DELETE FROM customer WHERE customer_id=4;
 
 SELECT COUNT(*) FROM customer;
+
