@@ -1,11 +1,17 @@
-customer(
-    customer_id TEXT,
-    customer_name TEXT,
-    customer_city TEXT,
-    customer_state TEXT,
-    customer_country TEXT,
-    customer_phone TEXT,
-    customer_email TEXT
+>CREATE fileOutput1.txt;
+>DATABASES;
+C:\Windows\Programming_fundamental\fileInput1.mdb
+>CREATE TABLE customer(
+customer_id,
+customer_name,
+customer_city,
+customer_state,
+customer_country,
+customer_phone,
+customer_email
 );
-> SELECT * FROM customer;
-customer_id,customer_name,customer_city,customer_state,customer_country,customer_phone,customer_email
+>INSERT INTO customer VALUES
+('1','Alice','New York','NY','USA','1234567890','alice@example.com')
+('2','Bob','Los Angeles','CA','USA','0987654321','bob@example.com')
+('3','Charlie','Chicago','IL','USA','1122334455','charlie@example.com')
+('4','Diana','Houston','TX','USA','6677889900','diana@example.com')
