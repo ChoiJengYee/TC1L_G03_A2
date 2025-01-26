@@ -1,0 +1,20 @@
+CREATE TABLE customer (
+    customer_id INT,
+    customer_name TEXT,
+    customer_city TEXT,
+    customer_state TEXT,
+    customer_country TEXT,
+    customer_phone TEXT,
+    customer_email TEXT
+);
+
+INSERT INTO customer VALUES(1, 'Alice', 'New York', 'NY', 'USA', '1234567890', 'alice@example.com');
+INSERT INTO customer VALUES(2, 'Bob', 'Los Angeles', 'CA', 'USA', '0987654321', 'bob@example.com');
+INSERT INTO customer VALUES(3, 'Charlie', 'Chicago', 'IL', 'USA', '1122334455', 'charlie@example.com');
+INSERT INTO customer VALUES(4, 'Diana', 'Houston', 'TX', 'USA', '6677889900', 'diana@example.com');
+
+SELECT * FROM customer;
+
+DELETE FROM customer WHERE customer_id=1;
+
+SELECT COUNT(*) FROM customer;
